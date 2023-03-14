@@ -124,6 +124,9 @@ const Charts = () => {
           flexure: 30,
           component: <BasicPath />,
         },
+        id: {
+          label: 'id',
+        },
       }}
       data={data || []}
     />
