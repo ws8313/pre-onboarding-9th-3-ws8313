@@ -10,6 +10,9 @@ import {
   HintPoint,
   YAxisWrapper,
 } from 'styled-chart';
+import { useEffect, useState } from 'react';
+import getData from '../api/api';
+import { ChartKeyType, ChartType } from '../types/dataType';
 
 const MyTooltip = styled(TooltipWrapper)`
   background: Black;
@@ -28,36 +31,6 @@ const MyXAxisItem = styled(XAxisItem)`
 
 const MyXAxisLineWrapper = styled(XAxisLineWrapper)`
   border-top: 2px solid gray;
-`;
-
-const StarredItemText = styled.span`
-  font-size: 14px;
-  font-weight: 700;
-`;
-
-const StarredLineItem = styled.div`
-  display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  text-align: center;
-  border-left: 2px solid HotPink;
-  margin-left: -1px;
-  font-size: 12px;
-  border-radius: 0;
-  box-sizing: border-box;
-  padding: 32px 0;
-  width: 100%;
-  transform: translateX(50%);
-  height: 100%;
-
-  ${StarredItemText} {
-    padding: 4px;
-    font-size: 11px;
-    background: HotPink;
-    text-align: left;
-    transform: translateX(-100%);
-    width: 40px;
-  }
 `;
 
 const MyPointer = styled(HintPoint)<{ color: string }>`
@@ -81,133 +54,78 @@ const ConversionPath = styled(Path)`
   stroke: HotPink;
 `;
 
-// const ProPath = styled(Path)`
-//   stroke: MediumTurquoise;
-//   fill: MediumTurquoise;
-// `;
-
 const BasicPath = styled(Path)`
   stroke: PaleTurquoise;
   fill: PaleTurquoise;
 `;
 
-const getConversionLineList = () => {
-  <StarredLineItem>
-    <StarredItemText>New record!</StarredItemText>
-  </StarredLineItem>;
-};
-
 const Charts = () => {
+  const [data, setData] = useState<ChartType[]>();
+
+  const convertData = (data: ChartKeyType) => {
+    const convertedData = [];
+    const date = Object.keys(data);
+    const location = Object.values(data).map((value) => value.id);
+    const lineValue = Object.values(data).map((value) => value.value_area);
+    const barValue = Object.values(data).map((value) => value.value_bar);
+
+    for (let i = 0; i < date.length; i++) {
+      convertedData.push({
+        date: date[i],
+        id: location[i],
+        line_value: lineValue[i],
+        bar_value: barValue[i],
+      });
+    }
+
+    return convertedData;
+  };
+
+  useEffect(() => {
+    getData().then((res) => {
+      const chartData = convertData(res.response);
+
+      setData(chartData);
+    });
+  }, []);
+
   return (
     <LineChart
       tooltip={{
         isVisible: true,
         component: <MyTooltip />,
         hints: {
-          basicPlan: <MyPointer color='PaleTurquoise' />,
-          proPlan: <MyPointer color='MediumTurquoise' />,
-          conversion: <MyPointer color='HotPink' />,
+          line_value: <MyPointer color='PaleTurquoise' />,
+          bar_value: <MyPointer color='HotPink' />,
         },
       }}
       yAxis={{
-        maxValue: 100,
+        maxValue: 20000,
         minValue: 0,
         ticksNum: 5,
         sectionComponent: <MyYAxisWrapper />,
         component: <MyYAxisItem />,
       }}
       xAxis={{
-        key: 'day',
-        step: 1,
+        key: 'date',
+        step: 15,
         component: <MyXAxisItem />,
         sectionComponent: <MyXAxisLineWrapper />,
       }}
       config={{
-        conversion: {
-          label: 'Conversion',
+        bar_value: {
+          label: 'bar_value',
           component: <ConversionPath />,
           isFilled: false,
         },
-        basicPlan: {
-          label: 'Basic plan',
+        line_value: {
+          label: 'line_value',
           isFilled: true,
           flexure: 30,
           component: <BasicPath />,
         },
-        // proPlan: {
-        //   label: 'Pro plan',
-        //   isFilled: true,
-        //   component: <ProPath />,
-        // },
       }}
-      data={[
-        {
-          date: '19/08',
-          day: 'Sun',
-          basicPlan: 1,
-          proPlan: 4,
-          conversion: 22,
-        },
-        {
-          date: '20/08',
-          day: 'Mon',
-          conversion: 11,
-          basicPlan: 1,
-          proPlan: 4,
-        },
-        {
-          date: '21/08',
-          day: 'Tue',
-          conversion: 15,
-          basicPlan: 24,
-          proPlan: 14,
-        },
-        {
-          date: '22/08',
-          day: 'Wed',
-          conversion: 12,
-          basicPlan: 27,
-          proPlan: 11,
-        },
-        {
-          date: '23/08',
-          day: 'Thu',
-          conversion: 24,
-          basicPlan: 29,
-          proPlan: 8,
-        },
-        {
-          date: '24/08',
-          day: 'Fri',
-          conversion: 64,
-          basicPlan: 90,
-          proPlan: 4,
-        },
-        {
-          date: '25/08',
-          day: 'Sat',
-          conversion: 45,
-          basicPlan: 3,
-          proPlan: 1,
-        },
-        {
-          date: '26/08',
-          day: 'Sun',
-          conversion: {
-            value: 95,
-            component: () => getConversionLineList(),
-          },
-          proPlan: 13,
-          basicPlan: 23,
-        },
-        {
-          date: '27/08',
-          day: 'Mon',
-          conversion: 83,
-          proPlan: 13,
-          basicPlan: 33,
-        },
-      ]}
+      data={data || []}
     />
   );
 };
