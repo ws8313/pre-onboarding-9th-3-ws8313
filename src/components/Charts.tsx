@@ -12,7 +12,7 @@ import {
 } from 'styled-chart';
 import { useEffect, useState } from 'react';
 import getData from '../api/api';
-import { ChartKeyType, ChartType } from '../types/dataType';
+import { ChartKeyType } from '../types/dataType';
 
 const MyTooltip = styled(TooltipWrapper)`
   background: Black;
@@ -60,7 +60,8 @@ const BasicPath = styled(Path)`
 `;
 
 const Charts = () => {
-  const [data, setData] = useState<ChartType[]>();
+  // const [data, setData] = useState<ChartType[]>([]);
+  const [data, setData] = useState<any>([]);
 
   const convertData = (data: ChartKeyType) => {
     const convertedData = [];
@@ -88,6 +89,8 @@ const Charts = () => {
       setData(chartData);
     });
   }, []);
+
+  console.log(data);
 
   return (
     <LineChart
@@ -128,7 +131,7 @@ const Charts = () => {
           label: 'id',
         },
       }}
-      data={data || []}
+      data={data}
     />
   );
 };
